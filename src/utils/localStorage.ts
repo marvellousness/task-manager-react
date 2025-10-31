@@ -18,3 +18,16 @@ export const saveTasks = (tasks: Task[]): void => {
     console.error("Error saving tasks:", error);
   }
 };
+
+
+
+const formatDate = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const isToday = date.toDateString() === today.toDateString();
+  
+  if (isToday) {
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
