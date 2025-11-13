@@ -1,5 +1,5 @@
 import type { Task } from "./types/task";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FilterButtons } from "./components/FilterButtons";
 import { loadTasks, saveTasks } from "./utils/localStorage";
 import { TaskForm } from "./components/TaskForm";
@@ -63,6 +63,57 @@ export default function TaskManager() {
     completed: tasks.filter((t) => t.completed).length,
   };
 
+  // Group helper
+  const getDateKey = (timestamp: number) => {
+    return new Date(timestamp).toISOString().slice(0, 10);
+  };
+
+  const formatGroupLabel = (dateKey: string) => {
+    const date = new Date(dateKey);
+    const today = new Date();
+    const todayKey = getDateKey(today.getTime());
+    const yesterdayKey = getDateKey(Date.now() - 24 * 60 * 60 * 1000);
+
+    if (dateKey === todayKey) {
+      return "Today";
+    }
+
+    if (dateKey === yesterdayKey) {
+      return "Yesterday";
+    }
+
+    // show short month + day, include year only if different from current year
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() === today.getFullYear() ? undefined :  "numeric",
+    });
+  };
+
+  const groupedByDate = useMemo(() => {
+    const groups: Record<string, Task[]> = {};
+
+    for (const task of filteredTasks) {
+      const key = getDateKey(task.createdAt);
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(task);
+    }
+
+    // sort tasks inside a group newest-first
+    for (const k of Object.keys(groups)) {
+      groups[k].sort((a, b) => b.createdAt - a.createdAt);
+    }
+
+    // create an aary of groups sorted by date descending
+    const sortedKeys = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
+    return sortedKeys.map((key) => ({
+      dateKey: key,      
+      tasks: groups[key],
+    }));
+  }, [filteredTasks]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -80,14 +131,23 @@ export default function TaskManager() {
             {filteredTasks.length === 0 ? (
               <EmptyState filter={filter} />
             ) : (
-              filteredTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  onToggle={toggleTask}
-                  onDelete={deleteTask}
-                  onEdit={editTask}
-                />
+              groupedByDate.map((group) => (
+                <div key={group.dateKey}>
+                  <div className="mb-3 px-2 text-sm text-gray-500">
+                    {formatGroupLabel(group.dateKey)}
+                  </div>
+                  <div className="space-y-3">
+                    {group.tasks.map((task) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        onToggle={toggleTask}
+                        onDelete={deleteTask}
+                        onEdit={editTask}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))
             )}
           </div>
