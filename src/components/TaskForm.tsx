@@ -49,7 +49,7 @@ export function TaskForm({onAddTask,}: {
           <button
             onClick={handleSubmit}
             disabled={!title.trim()}
-            className="flex-shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 
+            className="flex-shrink-0 w-10 h-10 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 \
                      disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95
                      flex items-center justify-center"
           >
@@ -65,7 +65,11 @@ export function TaskForm({onAddTask,}: {
                 <button
                   key={p}
                   onClick={() => setPriority(p)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${priority === p ? priorityColors[p] : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                    priority === p
+                      ? priorityColors[p]
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
                 >
                   {p.charAt(0).toUpperCase() + p.slice(1)}
                 </button>
