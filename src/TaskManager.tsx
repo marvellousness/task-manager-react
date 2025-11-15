@@ -20,13 +20,14 @@ export default function TaskManager() {
     saveTasks(tasks);
   }, [tasks]);
 
-  const addTask = (title: string, priority: Task["priority"]) => {
+  const addTask = (title: string, priority: Task["priority"], description?: string) => {
     const newTask: Task = {
       id: crypto.randomUUID(),
       title,
       completed: false,
       createdAt: Date.now(),
       priority,
+      description: description?.trim() || undefined,
     };
     setTasks([newTask, ...tasks]);
   };
@@ -63,8 +64,9 @@ export default function TaskManager() {
     completed: tasks.filter((t) => t.completed).length,
   };
 
-  // Group helper
+  // --- Grouping helpers ---
   const getDateKey = (timestamp: number) => {
+    // returns YYYY-MM-DD so groups can be sorted lexicographically
     return new Date(timestamp).toISOString().slice(0, 10);
   };
 
@@ -74,30 +76,22 @@ export default function TaskManager() {
     const todayKey = getDateKey(today.getTime());
     const yesterdayKey = getDateKey(Date.now() - 24 * 60 * 60 * 1000);
 
-    if (dateKey === todayKey) {
-      return "Today";
-    }
-
-    if (dateKey === yesterdayKey) {
-      return "Yesterday";
-    }
+    if (dateKey === todayKey) return "Today";
+    if (dateKey === yesterdayKey) return "Yesterday";
 
     // show short month + day, include year only if different from current year
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: date.getFullYear() === today.getFullYear() ? undefined :  "numeric",
+      year: date.getFullYear() === today.getFullYear() ? undefined : "numeric",
     });
   };
 
   const groupedByDate = useMemo(() => {
     const groups: Record<string, Task[]> = {};
-
     for (const task of filteredTasks) {
       const key = getDateKey(task.createdAt);
-      if (!groups[key]) {
-        groups[key] = [];
-      }
+      if (!groups[key]) groups[key] = [];
       groups[key].push(task);
     }
 
@@ -106,12 +100,9 @@ export default function TaskManager() {
       groups[k].sort((a, b) => b.createdAt - a.createdAt);
     }
 
-    // create an aary of groups sorted by date descending
+    // create an array of groups sorted by date descending
     const sortedKeys = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
-    return sortedKeys.map((key) => ({
-      dateKey: key,      
-      tasks: groups[key],
-    }));
+    return sortedKeys.map((key) => ({ dateKey: key, tasks: groups[key] }));
   }, [filteredTasks]);
 
   return (
@@ -127,7 +118,7 @@ export default function TaskManager() {
             counts={counts}
           />
 
-          <div className="space-y-3">
+          <div className="space-y-6">
             {filteredTasks.length === 0 ? (
               <EmptyState filter={filter} />
             ) : (

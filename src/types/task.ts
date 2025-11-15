@@ -4,6 +4,7 @@ export interface Task {
   completed: boolean;
   createdAt: number;
   priority?: 'low' | 'medium' | 'high';
+  description?: string;
 }
 
 export type FilterType = 'all' | 'active' | 'completed';
