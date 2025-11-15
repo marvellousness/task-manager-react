@@ -44,10 +44,13 @@ export default function TaskManager() {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
-  const editTask = (id: string, newTitle: string) => {
+  // Extended edit: accept optional description
+  const editTask = (id: string, newTitle: string, newDescription?: string) => {
     setTasks(
       tasks.map((task) =>
-        task.id === id ? { ...task, title: newTitle } : task
+        task.id === id
+          ? { ...task, title: newTitle, description: newDescription?.trim() || undefined }
+          : task
       )
     );
   };
